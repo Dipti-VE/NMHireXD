@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+psycopg2-binary
+pydantic-settings
+pypdf
+python-docx
+python-multipart
+python-dotenv
+groq
+ 
+# Retry/backoff for transient rate-limit / connection errors.
+tenacity
