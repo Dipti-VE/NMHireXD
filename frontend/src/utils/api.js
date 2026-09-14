@@ -52,7 +52,7 @@ export const createJob = async (file) => {
 
   formData.append("file", file);
 
-  const response = await fetch(`${API_BASE_URL}/api/jobs`, {
+  const response = await fetch(`${API_BASE_URL}/jobs`, {
     method: "POST",
     headers: getHeaders(),
     body: formData,
@@ -80,7 +80,7 @@ export const createJobFromText = async (jdText) => {
 
   formData.append("jd_text", jdText);
 
-  const response = await fetch(`${API_BASE_URL}/api/jobs`, {
+  const response = await fetch(`${API_BASE_URL}/jobs`, {
     method: "POST",
     headers: getHeaders(),
     body: formData,
@@ -105,7 +105,7 @@ export const createJobFromText = async (jdText) => {
 
 export const screenJob = async (jobId) => {
   const response = await fetch(
-    `${API_BASE_URL}/api/jobs/${jobId}/screen`,
+    `${API_BASE_URL}/jobs/${jobId}/screen`,
     {
       method: "POST",
       headers: getHeaders(),
@@ -131,7 +131,7 @@ export const screenJob = async (jobId) => {
 
 export const getUserJobs = async () => {
   const response = await fetch(
-    `${API_BASE_URL}/api/user/jobs`,
+    `${API_BASE_URL}/user/jobs`,
     {
       method: "GET",
       headers: getHeaders(),
@@ -157,7 +157,7 @@ export const getUserJobs = async () => {
 
 export const getJobCandidates = async (jobId) => {
   const response = await fetch(
-    `${API_BASE_URL}/api/user/jobs/${jobId}/candidates`,
+    `${API_BASE_URL}/user/jobs/${jobId}/candidates`,
     {
       method: "GET",
       headers: getHeaders(),
