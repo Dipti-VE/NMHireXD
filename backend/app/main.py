@@ -1,16 +1,52 @@
 """FastAPI application entry point."""
+
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
 from .api import router
 from .database import engine
 from .models import Base
 
-app = FastAPI(title="NM-HireX", version="1.0.0")
+
+app = FastAPI(
+    title="NM-HireX",
+    version="1.0.0",
+)
+
+
+# ============================================================
+# CORS
+# ============================================================
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+# ============================================================
+# API ROUTES
+# ============================================================
+
 app.include_router(router)
+
+
+# ============================================================
+# HEALTH CHECK
+# ============================================================
 
 @app.get("/health")
 def health():
-    """Input: none. Output: simple service health response."""
+    """Simple service health response."""
     return {"status": "ok"}
 
-# Development convenience. For production use Alembic migrations instead.
+
+# Development convenience.
+# For production use Alembic migrations instead.
 # Base.metadata.create_all(bind=engine)
