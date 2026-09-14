@@ -26,7 +26,7 @@ class User(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
-
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
 # ============================================================
 # JOBS
 # One row per JD uploaded by a user. created_by is the uploader.

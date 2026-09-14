@@ -40,20 +40,44 @@ def test_full_pipeline():
         # Location: Remote / New York.
         # """
         sample_jd = """
-        We are hiring a Senior Data Scientist with 3-6 years of experience.
- 
-Mandatory Skills: Python, Machine Learning, Deep Learning, NLP, SQL
-Preferred Skills: LLMs, RAG, LangChain, AWS
- 
-Responsibilities:
-- Build and deploy ML models into production
-- Work with large datasets and build data pipelines
-- Collaborate with cross-functional teams
- 
-Education: B.Tech or M.Tech in Computer Science or related field
-Location: Kolkata
-Work Mode: Hybrid
-Notice Period: 30 days
+        Full Stack Developer
+        Location: India (Remote/Hybrid)
+
+        About the role
+
+        We're hiring a Full Stack Developer to build features end-to-end across our React frontend and Node.js backend, working closely with product and design.
+
+        We're looking for candidates with 3-6 years of full stack development experience.
+
+        Responsibilities
+        - Build responsive UI components in React
+        - Design and implement REST APIs in Node.js
+        - Design SQL schemas and write efficient queries
+        - Own features from design through deployment
+        - Debug and fix issues across the stack
+
+        Required skills
+        - JavaScript
+        - React
+        - Node.js
+        - REST APIs
+        - SQL
+
+        Preferred skills (nice to have)
+        - TypeScript
+        - MongoDB
+        - AWS
+        - Docker
+        - GraphQL
+
+        Domain
+        - Web application development
+
+        Education
+        - Bachelor's degree in Computer Science or related field preferred
+
+        Notice period
+        - 30 days preferred
         """
         print("Extracting Job Description requirements and creating Job...")
         job = create_job(db=db, user_id=user.id, raw_text=sample_jd, file_name="Test_Software_Engineer_JD.txt")

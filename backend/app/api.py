@@ -35,7 +35,15 @@ from .tool_functions import (
     read_file,
 )
 from .config import settings
+from fastapi.security import OAuth2PasswordRequestForm
 
+from .auth import (
+    hash_password,
+    verify_password,
+    create_access_token,
+    get_current_user,
+    require_admin,
+)
 
 router = APIRouter(prefix="/api")
 
@@ -81,7 +89,91 @@ def require_admin(
 # ============================================================
 # RESUME INGESTION
 # ============================================================
+@router.post("/auth/register")
+def register(
+    name: str = Form(...),
+    email: str = Form(...),
+    password: str = Form(...),
+    db: Session = Depends(get_db),
+):
+    existing = db.query(User).filter(
+        User.email == email
+    ).first()
 
+    if existing:
+        raise HTTPException(
+            status_code=400,
+            detail="Email already registered"
+        )
+
+    user = User(
+        name=name,
+        email=email,
+        password_hash=hash_password(password),
+        role="RECRUITER",
+        is_active=True,
+    )
+
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    return {
+        "message": "User registered successfully",
+        "user_id": str(user.id),
+        "name": user.name,
+        "email": user.email,
+        "role": user.role,
+    }
+
+@router.post("/auth/login")
+def login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db),
+):
+    user = db.query(User).filter(
+        User.email == form_data.username
+    ).first()
+
+    if not user or not verify_password(
+        form_data.password,
+        user.password_hash
+    ):
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid email or password",
+        )
+
+    if not user.is_active:
+        raise HTTPException(
+            status_code=403,
+            detail="User account is inactive",
+        )
+
+    token = create_access_token(user)
+
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "user": {
+            "id": str(user.id),
+            "name": user.name,
+            "email": user.email,
+            "role": user.role,
+        },
+    }
+
+@router.get("/auth/me")
+def me(
+    user: User = Depends(get_current_user),
+):
+    return {
+        "id": str(user.id),
+        "name": user.name,
+        "email": user.email,
+        "role": user.role,
+        "is_active": user.is_active,
+    }
 @router.post("/resumes/ingest")
 def api_ingest_resumes(
     db: Session = Depends(get_db),
@@ -546,7 +638,7 @@ def api_screen_job(
 
 @router.get("/user/jobs")
 def api_user_jobs(
-    user: User = Depends(current_user),
+    user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """

@@ -5,9 +5,13 @@ psycopg2-binary
 pydantic-settings
 pypdf
 python-docx
+PyMuPDF
 python-multipart
 python-dotenv
 groq
- 
+
 # Retry/backoff for transient rate-limit / connection errors.
 tenacity
+python-jose[cryptography]
+bcrypt
+ 
