@@ -2898,13 +2898,127 @@ def time_now():
 # QUERY FUNCTIONS
 # ------------------------------------------------------------
 def get_job_candidates(db: Session, job_id: UUID, limit: int = 10) -> list[dict]:
-    """Input: job UUID. Output: ranked candidate records, normally Top 10."""
-    rows = db.execute(select(JobCandidate, Candidate).join(Candidate, Candidate.id == JobCandidate.candidate_id)
-                      .where(JobCandidate.job_id == job_id, JobCandidate.is_shortlisted == True)
-                      .order_by(JobCandidate.ranking_position)).all()
-    return [{"rank": jc.ranking_position, "candidate_id": str(c.id), "name": c.name, "email": c.email,
-             "score": float(jc.overall_score or 0), "classification": jc.classification,
-             "status": jc.recruitment_status} for jc, c in rows[:limit]]
+    """
+    Input: job UUID.
+    Output: ranked candidates with complete score breakdown
+    for frontend screening card.
+    """
+
+    rows = db.execute(
+        select(JobCandidate, Candidate, ScreeningResult)
+        .join(
+            Candidate,
+            Candidate.id == JobCandidate.candidate_id
+        )
+        .join(
+            ScreeningResult,
+            ScreeningResult.job_candidate_id == JobCandidate.id
+        )
+        .where(
+            JobCandidate.job_id == job_id,
+            JobCandidate.is_shortlisted == True
+        )
+        .order_by(JobCandidate.ranking_position)
+    ).all()
+
+    results = []
+
+    for jc, candidate, screening in rows[:limit]:
+
+        # Convert weighted scores into frontend percentages.
+        # Example: 24/30 = 80%.
+        mandatory = float(screening.mandatory_skills_score or 0)
+        experience = float(screening.experience_score or 0)
+        domain = float(screening.domain_score or 0)
+        preferred = float(screening.preferred_skills_score or 0)
+        education = float(screening.education_score or 0)
+        location = float(screening.location_score or 0)
+        availability = float(screening.availability_score or 0)
+        other = float(screening.other_requirements_score or 0)
+
+        score_breakdown = {
+            "mandatory_skills": {
+                "score": mandatory,
+                "max_score": 30,
+                "percentage": round((mandatory / 30) * 100)
+            },
+            "experience": {
+                "score": experience,
+                "max_score": 25,
+                "percentage": round((experience / 25) * 100)
+            },
+            "domain": {
+                "score": domain,
+                "max_score": 15,
+                "percentage": round((domain / 15) * 100)
+            },
+            "preferred_skills": {
+                "score": preferred,
+                "max_score": 10,
+                "percentage": round((preferred / 10) * 100)
+            },
+            "education": {
+                "score": education,
+                "max_score": 5,
+                "percentage": round((education / 5) * 100)
+            },
+            "location": {
+                "score": location,
+                "max_score": 5,
+                "percentage": round((location / 5) * 100)
+            },
+            "availability": {
+                "score": availability,
+                "max_score": 5,
+                "percentage": round((availability / 5) * 100)
+            },
+            "other_requirements": {
+                "score": other,
+                "max_score": 5,
+                "percentage": round((other / 5) * 100)
+            }
+        }
+
+        # Reasoning was stored inside matching_details.
+        reasoning = None
+
+        if screening.matching_details:
+            reasoning = screening.matching_details.get("evaluation")
+
+        results.append({
+            "rank": jc.ranking_position,
+            "candidate_id": str(candidate.id),
+            "name": candidate.name,
+            "email": candidate.email,
+
+            # Candidate information for frontend
+            "experience_years": (
+                float(candidate.total_experience_years)
+                if candidate.total_experience_years is not None
+                else None
+            ),
+            "current_company": candidate.current_company,
+            "current_role": candidate.current_role,
+            "location": candidate.location,
+            "notice_period_days": candidate.notice_period_days,
+            "skills": (
+                candidate.normalized_profile.get("skills", [])
+                if candidate.normalized_profile
+                else []
+            ),
+            # Overall result
+            "score": float(screening.total_score or 0),
+            "classification": screening.classification,
+            "status": jc.recruitment_status,
+
+            # Detailed scoring
+            "score_breakdown": score_breakdown,
+
+            # AI explanation
+            "reasoning": reasoning
+        })
+
+    return results
 
 def get_user_jobs(db: Session, user_id: UUID) -> list[dict]:
     """Input: authenticated user UUID. Output: only that user's JDs."""
