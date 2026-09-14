@@ -461,21 +461,17 @@ export default function MatchAgent() {
   };
 
 
-  const getClassificationLabel = (
-    classification
-  ) => {
-
-    if (!classification) {
-      return "Match";
-    }
-
-    return String(
-      classification
-    )
+  const getClassificationLabel = (classification) => {
+    if (!classification) return "Match";
+    return String(classification)
       .replaceAll("_", " ")
-      .replace(/\b\w/g, (letter) =>
-        letter.toUpperCase()
-      );
+      .replace(/\b\w/g, (letter) => letter.toUpperCase());
+  };
+
+  const formatBreakdownLabel = (key) => {
+    return String(key)
+      .replaceAll("_", " ")
+      .replace(/\b\w/g, (letter) => letter.toUpperCase());
   };
 
 
@@ -1238,236 +1234,91 @@ export default function MatchAgent() {
 
 
 
-                  {candidates.map(
-                    (candidate, index) => {
+                  {candidates.map((candidate, index) => {
+                    const candidateKey = candidate.candidate_id || candidate.id || index;
+                    const score = Number(candidate.score || 0);
+                    const breakdown = candidate?.score_breakdown && typeof candidate.score_breakdown === "object"
+                      ? candidate.score_breakdown
+                      : {};
+                    const phone = candidate?.phone ? String(candidate.phone).replace(/[^0-9]/g, "") : "";
 
-                      const candidateKey =
-                        candidate.candidate_id ||
-                        candidate.id ||
-                        index;
-
-
-                      const score =
-                        Number(
-                          candidate.score || 0
-                        );
-
-
-                      return (
-
-                        <div
-                          key={candidateKey}
-                          className="candidate-card glass-dark-card bg-slate-800/40 rounded-2xl p-5 border border-slate-700/50"
-                        >
-
-                          {/* HEADER */}
-
-                          <div className="flex flex-wrap items-start justify-between gap-4">
-
-                            <div>
-
-                              <div className="flex items-center gap-2.5">
-
-                                <p className="text-base font-bold text-white">
-
-                                  {candidate.name ||
-                                    "Unnamed Candidate"}
-
-                                </p>
-
-
-                                <span className="rounded-full bg-accent/20 px-2.5 py-1 text-[10px] font-bold text-accent ring-1 ring-accent/30">
-
-                                  {getClassificationLabel(
-                                    candidate.classification
-                                  )}
-
-                                </span>
-
-                              </div>
-
-
-                              <p className="mt-1.5 text-xs font-medium text-slate-400">
-
-                                {candidate.email ||
-                                  "Email unavailable"}
-
-                              </p>
-
-                            </div>
-
-
-                            <div className="text-right flex flex-col items-end">
-
-                              <p className="font-display text-4xl font-bold text-accent leading-none">
-
-                                {score.toFixed(1)}
-
-                              </p>
-
-
-                              <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                                Match / 100
-                              </p>
-
-                            </div>
-
-                          </div>
-
-
-
-                          {/* RANK + STATUS */}
-
-                          <div className="mt-4 flex flex-wrap gap-2">
-
-                            <span className="rounded-full bg-brand/20 px-3 py-1 text-[11px] font-bold text-brand">
-
-                              Rank #{candidate.rank || index + 1}
-
-                            </span>
-
-
-                            {candidate.status && (
-
-                              <span className="rounded-full bg-slate-800 px-3 py-1 text-[11px] font-bold text-slate-400 ring-1 ring-slate-700">
-
-                                {candidate.status}
-
+                    return (
+                      <div key={candidateKey} className="candidate-card glass-dark-card bg-slate-800/40 rounded-2xl p-5 border border-slate-700/50">
+                        <div className="flex flex-wrap items-start justify-between gap-4">
+                          <div>
+                            <div className="flex items-center gap-2.5">
+                              <p className="text-base font-bold text-white">{candidate.name || "Unnamed Candidate"}</p>
+                              <span className="rounded-full bg-accent/20 px-2.5 py-1 text-[10px] font-bold text-accent ring-1 ring-accent/30">
+                                {getClassificationLabel(candidate.classification)}
                               </span>
-
-                            )}
-
-                          </div>
-
-
-
-                          {/* ACTIONS */}
-
-                          <div className="mt-5 flex items-center justify-end gap-3 border-t border-slate-700/50 pt-4">
-
-                            <button
-                              onClick={() =>
-                                toggleDetails(
-                                  candidateKey
-                                )
-                              }
-                              className="text-xs font-bold text-slate-400 hover:text-white transition-colors px-2 py-1"
-                            >
-
-                              {expandedDetails[
-                                candidateKey
-                              ]
-                                ? "Hide details ↑"
-                                : "View details ↓"}
-
-                            </button>
-
-
-                            <button
-                              onClick={() =>
-                                handleContact(
-                                  candidateKey
-                                )
-                              }
-                              disabled={
-                                contacted[
-                                  candidateKey
-                                ]
-                              }
-                              className={`rounded-xl px-4 py-2 text-xs font-bold transition-all ${
-                                contacted[
-                                  candidateKey
-                                ]
-                                  ? "bg-accent/20 text-accent border border-accent/30"
-                                  : "bg-slate-800 text-white hover:bg-slate-700 border border-slate-700"
-                              }`}
-                            >
-
-                              {contacted[
-                                candidateKey
-                              ]
-                                ? "✓ Added to outreach"
-                                : "Add to outreach"}
-
-                            </button>
-
-                          </div>
-
-
-
-                          {/* DETAILS */}
-
-                          {expandedDetails[
-                            candidateKey
-                          ] && (
-
-                            <div className="mt-4 rounded-xl bg-slate-900/80 p-4 text-xs leading-relaxed border border-slate-800">
-
-                              <p className="text-slate-300">
-
-                                <strong className="text-white">
-                                  Candidate:
-                                </strong>{" "}
-
-                                {candidate.name ||
-                                  "Unnamed Candidate"}
-
-                              </p>
-
-
-                              {candidate.email && (
-
-                                <p className="mt-2 text-slate-300">
-
-                                  <strong className="text-white">
-                                    Email:
-                                  </strong>{" "}
-
-                                  {candidate.email}
-
-                                </p>
-
-                              )}
-
-
-                              <p className="mt-2 text-slate-300">
-
-                                <strong className="text-white">
-                                  Screening score:
-                                </strong>{" "}
-
-                                {score.toFixed(1)}
-                                /100
-
-                              </p>
-
-
-                              {candidate.classification && (
-
-                                <p className="mt-2 text-slate-300">
-
-                                  <strong className="text-white">
-                                    Classification:
-                                  </strong>{" "}
-
-                                  {getClassificationLabel(
-                                    candidate.classification
-                                  )}
-
-                                </p>
-
-                              )}
-
                             </div>
-
-                          )}
-
+                            <p className="mt-1.5 text-xs font-medium text-slate-400">{candidate.email || "Email unavailable"}</p>
+                          </div>
+                          <div className="text-right flex flex-col items-end">
+                            <p className="font-display text-4xl font-bold text-accent leading-none">{score.toFixed(1)}</p>
+                            <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-slate-500">Match / 100</p>
+                          </div>
                         </div>
 
-                      );
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          <span className="rounded-full bg-brand/20 px-3 py-1 text-[11px] font-bold text-brand">Rank #{candidate.rank || index + 1}</span>
+                          {candidate.status && (
+                            <span className="rounded-full bg-slate-800 px-3 py-1 text-[11px] font-bold text-slate-400 ring-1 ring-slate-700">{candidate.status}</span>
+                          )}
+                        </div>
 
-                    }
-                  )}
+                        {/* SCORE BREAKDOWN — DIRECTLY FROM API RESPONSE */}
+                        {Object.keys(breakdown).length > 0 && (
+                          <div className="mt-5 rounded-xl bg-slate-900/60 p-4 border border-slate-800">
+                            <p className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-300">Score breakdown</p>
+                            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                              {Object.entries(breakdown).map(([key, value]) => {
+                                const item = value && typeof value === "object" ? value : { score: value };
+                                return (
+                                  <div key={key} className="rounded-lg bg-slate-800/70 p-3">
+                                    <p className="text-[10px] font-bold text-slate-400">{formatBreakdownLabel(key)}</p>
+                                    <p className="mt-1 text-sm font-bold text-white">
+                                      {item.score ?? 0}
+                                      {item.max_score !== undefined && item.max_score !== null ? ` / ${item.max_score}` : ""}
+                                    </p>
+                                    {item.percentage !== undefined && item.percentage !== null && (
+                                      <p className="mt-0.5 text-[10px] font-bold text-accent">{item.percentage}%</p>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="mt-5 flex items-center justify-end gap-3 border-t border-slate-700/50 pt-4">
+                          <button onClick={() => toggleDetails(candidateKey)} className="text-xs font-bold text-slate-400 hover:text-white transition-colors px-2 py-1">
+                            {expandedDetails[candidateKey] ? "Hide details ↑" : "View details ↓"}
+                          </button>
+                          <button onClick={() => handleContact(candidateKey)} disabled={contacted[candidateKey]} className={`rounded-xl px-4 py-2 text-xs font-bold transition-all ${contacted[candidateKey] ? "bg-accent/20 text-accent border border-accent/30" : "bg-slate-800 text-white hover:bg-slate-700 border border-slate-700"}`}>
+                            {contacted[candidateKey] ? "✓ Added to outreach" : "Add to outreach"}
+                          </button>
+                          <button type="button" disabled={!phone} onClick={() => {
+                            if (!phone) return;
+                            window.open(`https://wa.me/${phone}`, "_blank", "noopener,noreferrer");
+                          }} className="rounded-xl bg-green-600 px-4 py-2 text-xs font-bold text-white transition-all hover:bg-green-500 disabled:cursor-not-allowed disabled:opacity-40">
+                            WhatsApp
+                          </button>
+                        </div>
+
+                        {expandedDetails[candidateKey] && (
+                          <div className="mt-4 rounded-xl bg-slate-900/80 p-4 text-xs leading-relaxed border border-slate-800">
+                            <p className="text-slate-300"><strong className="text-white">Candidate:</strong>{" "}{candidate.name || "Unnamed Candidate"}</p>
+                            {candidate.email && <p className="mt-2 text-slate-300"><strong className="text-white">Email:</strong>{" "}{candidate.email}</p>}
+                            <p className="mt-2 text-slate-300"><strong className="text-white">Screening score:</strong>{" "}{score.toFixed(1)}/100</p>
+                            {candidate.classification && <p className="mt-2 text-slate-300"><strong className="text-white">Classification:</strong>{" "}{getClassificationLabel(candidate.classification)}</p>}
+                            {candidate.phone && <p className="mt-2 text-slate-300"><strong className="text-white">Phone:</strong>{" "}{candidate.phone}</p>}
+                            {candidate.reasoning && <p className="mt-3 text-slate-300"><strong className="text-white">Reasoning:</strong>{" "}{candidate.reasoning}</p>}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
 
                 </div>
 
