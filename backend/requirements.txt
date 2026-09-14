@@ -9,6 +9,7 @@ PyMuPDF
 python-multipart
 python-dotenv
 groq
+openai
 
 # Retry/backoff for transient rate-limit / connection errors.
 tenacity
